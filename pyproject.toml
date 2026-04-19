@@ -1,0 +1,30 @@
+[project]
+name = "mosquito-detection-system"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dill==0.3.5.1",
+    "flask>=3.1.3",
+    "flask-cors>=6.0.2",
+    "from-root==1.0.2",
+    "gitpython>=3.1.30",
+    "matplotlib>=3.3",
+    "numpy>=1.23.5",
+    "opencv-python>=4.1.1",
+    "packaging>=26.1",
+    "pandas>=1.1.4",
+    "pillow>=10.3.0",
+    "psutil>=7.2.2",
+    "pyyaml>=5.3.1",
+    "requests>=2.32.2",
+    "scipy>=1.4.1",
+    "seaborn>=0.11.0",
+    "setuptools>=70.0.0",
+    "thop>=0.1.1",
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
+    "tqdm>=4.66.3",
+    "ultralytics>=8.2.64",
+    "urllib3>=2.6.0 ; python_full_version >= '3.9'",
+]

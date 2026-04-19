@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosquito Detection System</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #111827;
+            --card-soft: #1f2937;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --danger: #ef4444;
+            --border: #374151;
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top left, #1e293b, var(--bg) 60%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: min(100%, 1080px);
+            margin: 0 auto;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .hero {
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            margin: 0 0 0.5rem;
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            line-height: 1.2;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 720px;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)), var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 1rem;
+        }
+
+        .card h2 {
+            margin: 0 0 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #4b5563;
+            border-radius: 14px;
+            padding: 1.2rem;
+            text-align: center;
+            background: var(--card-soft);
+            transition: border-color 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: #11312a;
+        }
+
+        .upload-area p {
+            margin: 0.4rem 0;
+            color: var(--muted);
+        }
+
+        .upload-area .title {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .preview-wrap {
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem;
+            background: #0b1220;
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 360px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .placeholder {
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .actions {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #032018;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 0.8rem;
+            min-height: 1.2rem;
+            font-size: 0.92rem;
+            color: var(--muted);
+        }
+
+        .status.error {
+            color: var(--danger);
+        }
+
+        .status.success {
+            color: var(--accent);
+        }
+
+        .result-box {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #0b1220;
+            min-height: 340px;
+            padding: 1rem;
+            overflow: auto;
+            display: grid;
+            place-items: center;
+        }
+
+        .result-placeholder {
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .result-raw {
+            margin-top: 0.8rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.85rem;
+            color: #d1d5db;
+            background: #0b1220;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.7rem;
+            white-space: pre-wrap;
+            overflow: auto;
+            max-height: 180px;
+        }
+
+        details {
+            margin-top: 0.8rem;
+        }
+
+        details summary {
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .result-filename {
+            margin-top: 0.6rem;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .result-box.error {
+            place-items: start;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: #d1d5db;
+        }
+
+        .tips {
+            margin-top: 0.9rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        footer {
+            margin-top: auto;
+            color: #94a3b8;
+            font-size: 0.86rem;
+            text-align: center;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="hero">
+            <h1>Mosquito Detection System</h1>
+            <p>
+                Upload an image to run mosquito detection and review model output quickly.
+                This interface is designed for a fast, clear workflow for both testing and demo usage.
+            </p>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <h2>Upload & Predict</h2>
+
+                <div class="upload-area" id="dropZone" role="button" tabindex="0" aria-label="Upload image by click or drag and drop">
+                    <p class="title">Drop image here or click to browse</p>
+                    <p>Supported formats: JPG, PNG, WEBP</p>
+                </div>
+                <input id="imageInput" type="file" accept="image/*">
+
+                <div class="preview-wrap">
+                    <img id="previewImage" alt="Selected preview">
+                    <div class="placeholder" id="placeholderText">
+                        No image selected yet.<br>
+                        Choose a clear mosquito image for better prediction quality.
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="predictBtn" class="btn-primary" disabled>Run Prediction</button>
+                    <button id="clearBtn" class="btn-secondary" type="button">Clear</button>
+                </div>
+
+                <div id="statusText" class="status"></div>
+            </article>
+
+            <article class="card">
+                <h2>Prediction Output</h2>
+                <div id="resultBox" class="result-box">
+                    <img id="resultImage" class="result-image" alt="Prediction output">
+                    <div id="resultPlaceholder" class="result-placeholder">Waiting for prediction...</div>
+                </div>
+                <div id="resultFilename" class="result-filename"></div>
+                <details>
+                    <summary>Show raw API response</summary>
+                    <pre id="resultRaw" class="result-raw">No response yet.</pre>
+                </details>
+                <div class="tips">
+                    Tip: if the backend model service is not loaded, you may receive an error response.
+                    Start the Flask app and model initialization before testing.
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        Built for rapid mosquito image analysis and user-friendly reporting.
+    </footer>
+
+    <script>
+        const imageInput = document.getElementById("imageInput");
+        const dropZone = document.getElementById("dropZone");
+        const previewImage = document.getElementById("previewImage");
+        const placeholderText = document.getElementById("placeholderText");
+        const predictBtn = document.getElementById("predictBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const statusText = document.getElementById("statusText");
+        const resultBox = document.getElementById("resultBox");
+        const resultImage = document.getElementById("resultImage");
+        const resultPlaceholder = document.getElementById("resultPlaceholder");
+        const resultRaw = document.getElementById("resultRaw");
+        const resultFilename = document.getElementById("resultFilename");
+
+        let selectedFile = null;
+        let selectedImageBase64 = null;
+
+        function setStatus(message, type = "") {
+            statusText.textContent = message;
+            statusText.className = "status";
+            if (type) {
+                statusText.classList.add(type);
+            }
+        }
+
+        function updatePreview(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target.result;
+                selectedImageBase64 = result.split(",")[1];
+                previewImage.src = result;
+                previewImage.style.display = "block";
+                placeholderText.style.display = "none";
+                predictBtn.disabled = false;
+                setStatus("Image ready for prediction.", "success");
+            };
+            reader.onerror = () => {
+                setStatus("Unable to read the image file.", "error");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+                setStatus("Please upload a valid image file.", "error");
+                return;
+            }
+            selectedFile = file;
+            updatePreview(file);
+        }
+
+        function resetResultDisplay() {
+            resultBox.classList.remove("error");
+            resultImage.src = "";
+            resultImage.style.display = "none";
+            resultPlaceholder.style.display = "block";
+            resultPlaceholder.textContent = "Waiting for prediction...";
+            resultFilename.textContent = "";
+            resultRaw.textContent = "No response yet.";
+        }
+
+        function showResultImage(base64Image, fileName = "prediction.jpg", rawData = null) {
+            resultBox.classList.remove("error");
+            resultImage.src = `data:image/jpeg;base64,${base64Image}`;
+            resultImage.style.display = "block";
+            resultPlaceholder.style.display = "none";
+            resultFilename.textContent = `Output image: ${fileName}`;
+            resultRaw.textContent = rawData ? JSON.stringify(rawData, null, 2) : "{ \"image\": \"<base64>\" }";
+        }
+
+        function showResultError(message) {
+            resultBox.classList.add("error");
+            resultImage.src = "";
+            resultImage.style.display = "none";
+            resultPlaceholder.style.display = "block";
+            resultPlaceholder.textContent = `Prediction failed.\n${message}`;
+            resultFilename.textContent = "";
+            resultRaw.textContent = message;
+        }
+
+        function getDroppedFile(dataTransfer) {
+            if (!dataTransfer) return null;
+            if (dataTransfer.files && dataTransfer.files.length > 0) {
+                return dataTransfer.files[0];
+            }
+            if (dataTransfer.items && dataTransfer.items.length > 0) {
+                for (const item of dataTransfer.items) {
+                    if (item.kind === "file") {
+                        return item.getAsFile();
+                    }
+                }
+            }
+            return null;
+        }
+
+        function getDroppedImageUrl(dataTransfer) {
+            if (!dataTransfer) return null;
+
+            const uriList = dataTransfer.getData("text/uri-list");
+            if (uriList) {
+                const cleanUrl = uriList.split("\n").find((line) => line && !line.startsWith("#"));
+                if (cleanUrl) return cleanUrl.trim();
+            }
+
+            const html = dataTransfer.getData("text/html");
+            if (html) {
+                const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+                if (imgMatch && imgMatch[1]) {
+                    return imgMatch[1];
+                }
+            }
+
+            const text = dataTransfer.getData("text/plain");
+            if (text && /^https?:\/\//i.test(text.trim())) {
+                return text.trim();
+            }
+
+            return null;
+        }
+
+        async function fetchImageAsFile(url) {
+            const response = await fetch(url, { mode: "cors" });
+            if (!response.ok) {
+                throw new Error("Could not download dropped image URL.");
+            }
+
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.startsWith("image/")) {
+                throw new Error("Dropped URL is not an image.");
+            }
+
+            const blob = await response.blob();
+            const safeName = (url.split("/").pop() || "dropped-image").split("?")[0];
+            return new File([blob], safeName, { type: blob.type || contentType });
+        }
+
+        imageInput.addEventListener("change", (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        dropZone.addEventListener("click", () => {
+            imageInput.click();
+        });
+
+        dropZone.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                imageInput.click();
+            }
+        });
+
+        // Prevent browser from opening dropped files outside target zone.
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+            window.addEventListener(eventName, (e) => {
+                e.preventDefault();
+            });
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = "copy";
+                }
+                dropZone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove("dragover");
+            });
+        });
+
+        dropZone.addEventListener("drop", async (e) => {
+            const droppedFile = getDroppedFile(e.dataTransfer);
+            if (droppedFile) {
+                handleFile(droppedFile);
+                return;
+            }
+
+            const droppedImageUrl = getDroppedImageUrl(e.dataTransfer);
+            if (!droppedImageUrl) {
+                setStatus("No valid image detected in drop action. Try again.", "error");
+                return;
+            }
+
+            try {
+                setStatus("Fetching dropped image from browser source...");
+                const remoteFile = await fetchImageAsFile(droppedImageUrl);
+                handleFile(remoteFile);
+            } catch (error) {
+                setStatus("Browser image drop blocked by source site (CORS). Save image locally, then drop it.", "error");
+            }
+        });
+
+        predictBtn.addEventListener("click", async () => {
+            if (!selectedImageBase64) {
+                setStatus("Please choose an image first.", "error");
+                return;
+            }
+
+            predictBtn.disabled = true;
+            setStatus("Running prediction...");
+            resultBox.classList.remove("error");
+            resultImage.style.display = "none";
+            resultPlaceholder.style.display = "block";
+            resultPlaceholder.textContent = "Processing...";
+            resultFilename.textContent = "";
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: selectedImageBase64 })
+                });
+
+                let data = null;
+                let responseText = "";
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    responseText = await response.text();
+                }
+
+                if (!response.ok) {
+                    const errorMessage = responseText || (data && data.message) || ("Request failed with status " + response.status);
+                    throw new Error(errorMessage);
+                }
+
+                if (data && data.image) {
+                    showResultImage(data.image, "detected_mosquito.jpg", data);
+                } else {
+                    resultRaw.textContent = data ? JSON.stringify(data, null, 2) : responseText;
+                    resultPlaceholder.textContent = "Response received, but no image field was found.";
+                    resultPlaceholder.style.display = "block";
+                    resultImage.style.display = "none";
+                }
+                setStatus("Prediction completed successfully.", "success");
+            } catch (error) {
+                showResultError(error.message);
+                setStatus("Prediction failed. Check backend logs.", "error");
+            } finally {
+                predictBtn.disabled = false;
+            }
+        });
+
+        clearBtn.addEventListener("click", () => {
+            selectedFile = null;
+            selectedImageBase64 = null;
+            imageInput.value = "";
+            previewImage.src = "";
+            previewImage.style.display = "none";
+            placeholderText.style.display = "block";
+            predictBtn.disabled = true;
+            resetResultDisplay();
+            setStatus("");
+        });
+
+        resetResultDisplay();
+    </script>
+</body>
+</html>
